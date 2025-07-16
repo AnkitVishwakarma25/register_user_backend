@@ -258,6 +258,95 @@ const resetPassword = async (req, res) => {
 
 
 
+const getCurrentUser = async (req, res) => {
+
+    try {
+        const user = await User.findById(req.userId).select('_id email');
+
+        if (!user)
+            return res.status(400).json({ loggedIn: false, user: null })
+
+        res.json({
+            loggedIn: true,
+            user: {
+                id: user._id,
+                email: user.email
+            }
+        });
+    } catch (error) {
+
+        console.error('getCurrentUser error', error);
+        res.status(500).json({ loggedIn: false, user: null })
+
+    }
+}
+
+const refreshAccessToken = async (req, res) => {
+
+    try {
+        const user = await User.findById(req.userId).select('_id email');
+
+        if (!user)
+            return res.status(404).json({ message: 'user not found' });
+
+        const newAccessToken = generateAccessToken(user._id);
+
+        res.cookie('accessToken', newAccessToken, {
+            httpOnly: true,
+            maxAge: 15 * 60 * 1000
+        });
+
+        return res.json({
+            message: "Access Token refreshed !",
+            loggedIn: true,
+            user: {
+                id: user._id,
+                email: user.email
+            }
+        });
+
+    } catch (error) {
+
+        console.error("refreshAccessToken error", error);
+        res.status(500).json({ message: "Internal server error" })
+
+
+    }
+
+
+}
+
+const logOut = async (req, res) => {
+
+    try {
+        const refreshToken = req.cookies?.refreshToken;
+
+        if (refreshToken) {
+
+            await Token.deleteOne({ refreshToken })
+
+        }
+
+        res.clearCookie('accessToken', {
+            httpOnly: true,
+            // sameSite: 'strict',
+            //secure: process.env.NODE_ENV === 'production'
+        });
+
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+        });
+
+        return res.json({ message: "User Logged Out Successfully" });
+    } catch (error) {
+
+        console.error("Logout error", error);
+
+        return res.status(500).json({ message: "Internal server error " })
+
+    }
+}
+
 
 module.exports = {
     registerUser,
@@ -267,4 +356,7 @@ module.exports = {
     forgetPasswordOtp,
     verifyresetotp,
     resetPassword,
+    getCurrentUser,
+    refreshAccessToken,
+    logOut,
 }
