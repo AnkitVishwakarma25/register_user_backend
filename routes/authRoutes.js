@@ -4,11 +4,14 @@ const express = require('express')
 
 const router = express.Router();
 
-const { registerUser, veriyOTP, resendOTP, login, forgetPasswordOtp, verifyresetotp, resetPassword, getCurrentUser, refreshAccessToken, logOut } = require('../controllers/authcontroller')
+const { registerUser, veriyOTP, resendOTP, login, forgetPasswordOtp, verifyresetotp, resetPassword, getCurrentUser,
+    refreshAccessToken, logOut } = require('../controllers/authcontroller')
 
 const validateRegister = require('../middleware/validateRegister')
 const authMiddleware = require('../middleware/checkAccessTokenMiddleware')
 const checkRefreshToken = require('../middleware/checkRefreshTokenMiddleware')
+const upload = require('../middleware/upload')
+const { createPost } = require('../controllers/postController')
 
 
 router.post('/register', validateRegister, registerUser); //for register
@@ -21,4 +24,9 @@ router.post('/resetpassword', resetPassword); // for reset password
 router.get('/getme', authMiddleware, getCurrentUser); //if logged in then direct you land to loggedin dashboard
 router.get('/refreshAccess', checkRefreshToken, refreshAccessToken)
 router.post('/logout', logOut) //logout user 
+
+
+//posts 
+
+router.post('/post', authMiddleware, upload.single('image'), createPost);
 module.exports = router;
