@@ -159,10 +159,10 @@ const forgetPasswordOtp = async (req, res) => {
             return res.status(400).json({ message: "Please complete verification first" });
 
         const newOTP = Math.floor(100000 + Math.random() * 900000).toString();
-        const otpExpires = Date.now() + 5 * 60 * 1000; // 5 min
+        const otpExpire = Date.now() + 5 * 60 * 1000; // 5 min
 
         user.otp = newOTP;
-        user.otpExpires = otpExpires;
+        user.otpExpires = otpExpire;
         await user.save();
 
         await sendEmail(email, "Your OTP ", `Your reset-password OTP is: ${newOTP}`);
@@ -173,7 +173,7 @@ const forgetPasswordOtp = async (req, res) => {
         res.status(500).json({ message: "Server error. Please try again." });
     }
 }
-
+//Its not working properly 
 const verifyresetotp = async (req, res) => {
 
     try {
